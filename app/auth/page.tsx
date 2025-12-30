@@ -3,11 +3,11 @@
 export const dynamic = 'force-dynamic';
 
 import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 
 // Dynamically import AuthForm to prevent SSR errors
-const AuthForm = dynamic(() => import('../components/AuthForm'), { ssr: false });
+const AuthForm = dynamicImport(() => import('../components/AuthForm'), { ssr: false });
 
 function AuthPageContent() {
   const searchParams = useSearchParams();
