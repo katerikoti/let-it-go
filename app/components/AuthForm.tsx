@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { supabase } from '../lib/supabase';
 
 interface AuthFormProps {
   isLogin?: boolean;
@@ -38,31 +39,57 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
       }
 
       if (isLogin) {
-        // Login: check credentials from localStorage
-        const storedUsers = JSON.parse(localStorage.getItem('users') || '{}');
-        const user = storedUsers[email];
+        // Login: authenticate with Supabase
+        const { data: users, error: queryError } = await supabase
+          .from('users')
+          .select('id, password')
+          .eq('email', email)
+          .single();
 
-        if (!user || user.password !== password) {
+        if (queryError || !users) {
           setError('Invalid email or password');
           setLoading(false);
           return;
         }
 
-        // Store current user session
-        localStorage.setItem('currentUser', JSON.stringify({ email, password }));
-      } else {
-        // Sign up: store new credentials
-        const storedUsers = JSON.parse(localStorage.getItem('users') || '{}');
+        if (users.password !== password) {
+          setError('Invalid email or password');
+          setLoading(false);
+          return;
+        }
 
-        if (storedUsers[email]) {
+        // Store user ID in sessionStorage for the session
+        sessionStorage.setItem('userId', users.id);
+        sessionStorage.setItem('userEmail', email);
+      } else {
+        // Sign up: create new user in Supabase
+        const { data: existingUser, error: checkError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', email)
+          .single();
+
+        if (existingUser) {
           setError('Email already registered');
           setLoading(false);
           return;
         }
 
-        storedUsers[email] = { password, email };
-        localStorage.setItem('users', JSON.stringify(storedUsers));
-        localStorage.setItem('currentUser', JSON.stringify({ email, password }));
+        const { data: newUser, error: insertError } = await supabase
+          .from('users')
+          .insert([{ email, password }])
+          .select('id')
+          .single();
+
+        if (insertError || !newUser) {
+          setError('Failed to create account');
+          setLoading(false);
+          return;
+        }
+
+        // Store user ID in sessionStorage
+        sessionStorage.setItem('userId', newUser.id);
+        sessionStorage.setItem('userEmail', email);
       }
 
       setSuccess(true);

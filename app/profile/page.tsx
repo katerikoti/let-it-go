@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { supabase } from '../lib/supabase';
 
 interface Message {
   id: string;
@@ -17,34 +18,51 @@ export default function ProfilePage() {
   const [content, setContent] = useState('');
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'compose' | 'sent'>('compose');
   const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     // Check if user is logged in and load their messages
-    const user = localStorage.getItem('currentUser');
-    if (!user) {
+    const storedUserId = sessionStorage.getItem('userId');
+    if (!storedUserId) {
       router.push('/');
     } else {
-      setCurrentUser(user);
+      setUserId(storedUserId);
       setIsAuthenticated(true);
-      
-      // Load messages for this user from localStorage
-      const messagesKey = `messages_${user}`;
-      const savedMessages = localStorage.getItem(messagesKey);
-      if (savedMessages) {
-        try {
-          setMessages(JSON.parse(savedMessages));
-        } catch (e) {
-          setMessages([]);
-        }
-      }
+      loadMessages(storedUserId);
     }
   }, [router]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const loadMessages = async (uid: string) => {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('messages')
+        .select('id, recipient, content, created_at')
+        .eq('user_id', uid)
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      const formattedMessages: Message[] = (data || []).map((msg: any) => ({
+        id: msg.id,
+        recipient: msg.recipient,
+        content: msg.content,
+        timestamp: new Date(msg.created_at).toLocaleString(),
+      }));
+
+      setMessages(formattedMessages);
+    } catch (err) {
+      console.error('Error loading messages:', err);
+      setMessages([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -53,39 +71,61 @@ export default function ProfilePage() {
       return;
     }
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      recipient: recipient.trim(),
-      content: content.trim(),
-      timestamp: new Date().toLocaleString(),
-    };
-
-    const updatedMessages = [newMessage, ...messages];
-    setMessages(updatedMessages);
-    
-    // Save messages to localStorage for this user
-    if (currentUser) {
-      const messagesKey = `messages_${currentUser}`;
-      localStorage.setItem(messagesKey, JSON.stringify(updatedMessages));
+    if (!userId) {
+      setError('User not authenticated');
+      return;
     }
-    
-    setRecipient('');
-    setContent('');
+
+    try {
+      const { data: newMsg, error: insertError } = await supabase
+        .from('messages')
+        .insert([
+          {
+            user_id: userId,
+            recipient: recipient.trim(),
+            content: content.trim(),
+          },
+        ])
+        .select('id, recipient, content, created_at')
+        .single();
+
+      if (insertError) throw insertError;
+
+      const formattedMessage: Message = {
+        id: newMsg.id,
+        recipient: newMsg.recipient,
+        content: newMsg.content,
+        timestamp: new Date(newMsg.created_at).toLocaleString(),
+      };
+
+      setMessages([formattedMessage, ...messages]);
+      setRecipient('');
+      setContent('');
+    } catch (err) {
+      setError('Failed to send message. Please try again.');
+      console.error(err);
+    }
   };
 
-  const deleteMessage = (id: string) => {
-    const updatedMessages = messages.filter((msg) => msg.id !== id);
-    setMessages(updatedMessages);
-    
-    // Update localStorage for this user
-    if (currentUser) {
-      const messagesKey = `messages_${currentUser}`;
-      localStorage.setItem(messagesKey, JSON.stringify(updatedMessages));
+  const deleteMessage = async (id: string) => {
+    try {
+      const { error: deleteError } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', id);
+
+      if (deleteError) throw deleteError;
+
+      setMessages(messages.filter((msg) => msg.id !== id));
+    } catch (err) {
+      console.error('Error deleting message:', err);
+      setError('Failed to delete message');
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('userId');
+    sessionStorage.removeItem('userEmail');
     router.push('/');
   };
 
