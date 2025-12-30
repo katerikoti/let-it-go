@@ -120,7 +120,7 @@ export default function ProfilePage() {
                 </span>
               )}
               <button className="logout-button" onClick={handleLogout}>
-                Logout
+                Log out
               </button>
             </div>
           </div>
@@ -172,22 +172,24 @@ export default function ProfilePage() {
                       >
                         ← Back to Sent
                       </span>
-                      <div className="message-detail-content">
-                        <div className="detail-header">
-                          <h2>{msg.recipient}</h2>
-                          <span className="detail-timestamp">{msg.timestamp}</span>
+                      <div className="message-detail-frame">
+                        <div className="message-detail-content">
+                          <div className="detail-header">
+                            <h2>{msg.recipient}</h2>
+                            <span className="detail-timestamp">{msg.timestamp}</span>
+                          </div>
+                          <p className="detail-message">{msg.content}</p>
                         </div>
-                        <p className="detail-message">{msg.content}</p>
-                        <button
-                          className="delete-sent-button"
-                          onClick={() => {
-                            deleteMessage(msg.id);
-                            setExpandedMessageId(null);
-                          }}
-                        >
-                          Delete
-                        </button>
                       </div>
+                      <button
+                        className="delete-sent-button"
+                        onClick={() => {
+                          deleteMessage(msg.id);
+                          setExpandedMessageId(null);
+                        }}
+                      >
+                        Delete
+                      </button>
                     </div>
                   ) : null;
                 })()
