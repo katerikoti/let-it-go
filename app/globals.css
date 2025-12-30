@@ -23,6 +23,27 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  font-size: 16px; /* Desktop-first fixed base font size */
+}
+
+/* Fixed background for desktop-first layout. Use --site-bg-image to override. */
+html, body {
+  height: 100%;
+  background-image: var(--site-bg-image, none);
+  background-attachment: fixed;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* Centered content wrapper with a fixed max width. Desktop-first: uses px widths. */
+.site-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  box-sizing: border-box;
+  position: relative; /* keep stacking context but let background remain separate */
 }
 
 /* App styles */
@@ -32,6 +53,7 @@ body {
   --foreground: #121212;
   --muted: #6b7280;
   --accent: #111827;
+  --site-bg-image: url('/letitgo-background.png');
 }
 
 .bg-app-bg { background: var(--app-bg); }
