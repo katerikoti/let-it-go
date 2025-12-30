@@ -105,3 +105,151 @@ html, body {
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
+
+/* Auth form styles */
+.auth-form-wrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 20px 0 20px 5%;
+  box-sizing: border-box;
+  margin-top: 0rem;
+}
+
+.auth-form-container {
+  max-width: 320px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 12px;
+  padding: 30px 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.auth-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #4a2c2a;
+  margin: 0 0 24px 0;
+  text-align: center;
+  font-family: 'Pinyon Script', cursive;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a2c2a;
+  margin-bottom: 6px;
+  font-family: 'Be Vietnam', sans-serif;
+  text-align: center;
+}
+
+.form-group input {
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  border: 2px solid #e0d5d0;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+  transition: border-color 0.2s;
+  text-align: left;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #c9807b;
+}
+
+.auth-error {
+  background-color: #fee;
+  color: #c45044;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  text-align: center;
+  border-left: 4px solid #c45044;
+}
+
+.auth-success {
+  background-color: #efe;
+  color: #2d8659;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  text-align: center;
+  border-left: 4px solid #2d8659;
+}
+
+.auth-submit-button {
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background-color: #c9807b;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 8px;
+}
+
+.auth-submit-button:hover:not(:disabled) {
+  background-color: #b86d64;
+}
+
+.auth-submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-toggle {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #4a2c2a;
+  margin-top: 14px;
+  font-family: 'Be Vietnam', sans-serif;
+}
+
+.auth-toggle a {
+  color: #c9807b;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-toggle a:hover {
+  text-decoration: underline;
+}
+
+.auth-toggle-button {
+  background: none;
+  border: none;
+  color: #c9807b;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Be Vietnam', sans-serif;
+  font-size: 0.95rem;
+  padding: 0;
+}
+
+.auth-toggle-button:hover {
+  text-decoration: underline;
+}
+
+/* Embedded auth form on main page */
+.auth-on-page {
+  margin-top: 0rem;
+  width: 100%;
+}
+

@@ -1,6 +1,18 @@
-import Link from "next/link";
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import AuthForm from './components/AuthForm';
 
 export default function HomePage() {
+  const [showAuth, setShowAuth] = useState(true);
+  const [isLogin, setIsLogin] = useState(true);
+
+  const handleAuthToggle = (loginMode: boolean) => {
+    setIsLogin(loginMode);
+    setShowAuth(true);
+  };
+
   return (
     <main className="hero-main">
       <section className="hero">
@@ -12,15 +24,33 @@ export default function HomePage() {
           Putting your thoughts and feelings into words can be a powerful step toward healing. Sometimes, just seeing your thoughts on the page brings clarity, relief, and a sense of calm.
         </p>
 
-        <div className="hero-cta">
-          <Link href="/auth?tab=login">
-            <button className="cta-button">Log In</button>
-          </Link>
-          <Link href="/auth?tab=signup">
-            <button className="cta-button">Sign Up</button>
-          </Link>
-        </div>
+        {!showAuth && (
+          <div className="hero-cta">
+            <button
+              className="cta-button"
+              onClick={() => handleAuthToggle(true)}
+            >
+              Log In
+            </button>
+            <button
+              className="cta-button"
+              onClick={() => handleAuthToggle(false)}
+            >
+              Sign Up
+            </button>
+          </div>
+        )}
       </section>
+
+      {showAuth && (
+        <div className="auth-on-page">
+          <AuthForm
+            isLogin={isLogin}
+            onToggle={(newIsLogin) => setIsLogin(newIsLogin)}
+            onClose={() => setShowAuth(false)}
+          />
+        </div>
+      )}
     </main>
   );
 }
