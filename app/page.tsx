@@ -13,8 +13,11 @@ export default function HomePage() {
         </p>
 
         <div className="hero-cta">
-          <Link href="/auth">
-            <button className="cta-button">Sign In / Sign Up</button>
+          <Link href="/auth?tab=login">
+            <button className="cta-button">Log In</button>
+          </Link>
+          <Link href="/auth?tab=signup">
+            <button className="cta-button">Sign Up</button>
           </Link>
         </div>
       </section>
