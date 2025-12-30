@@ -3,7 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --site-bg-image: url('/letitgo-background.png');
+  --site-bg-image: url('/Letitgo-background.png');
 }
 
 @theme inline {
