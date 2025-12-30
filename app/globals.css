@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --site-bg-image: url('/letitgo-background.png');
 }
 
 @theme inline {
@@ -23,4 +24,84 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+}
+
+/* Fixed background behind content (desktop-first) */
+html, body {
+  height: 100%;
+  background-image: var(--site-bg-image, none);
+  background-attachment: fixed;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* Site wrapper centers content and provides horizontal padding */
+.site-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+/* Hero / landing page helpers (desktop-first) */
+.hero-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  color: #4a2c2a;
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: left;
+  height: 100vh;
+  box-sizing: border-box;
+  padding-top: 8vh; /* move content higher */
+}
+
+.hero {
+  max-width: 56ch;
+  padding: 48px 0;
+  margin: 0 auto;
+}
+
+.hero-subtitle {
+  font-family: 'Be Vietnam', sans-serif;
+  color: #f2a494;
+  font-size: 1.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.hero-title {
+  font-size: 3.25rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  font-family: 'Pinyon Script', cursive;
+  color: #879386;
+  line-height: 1;
+}
+
+.hero-p {
+  font-size: 1.0625rem;
+  margin-bottom: 0.6rem;
+  font-family: 'Be Vietnam', sans-serif;
+  color: #c45044;
+  line-height: 1.6;
+}
+
+.hero-cta {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-start;
+  margin-top: 0.35rem;
+}
+
+.cta-button {
+  padding: 0.7rem 1.25rem;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  border: none;
+  background-color: #c9807b;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
