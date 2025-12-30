@@ -147,12 +147,13 @@ html, body {
 }
 
 .form-group label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #4a2c2a;
-  margin-bottom: 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #2a2a2a;
+  margin-bottom: 8px;
   font-family: 'Be Vietnam', sans-serif;
-  text-align: center;
+  text-align: left;
+  display: block;
 }
 
 .form-group input {
@@ -253,3 +254,266 @@ html, body {
   width: 100%;
 }
 
+/* Profile page styles */
+.profile-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  color: #4a2c2a;
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: left;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding-top: 3vh;
+  padding-bottom: 2rem;
+}
+
+.profile-layout {
+  display: block;
+  max-width: 800px;
+  margin: 0 0 0 5%;
+  align-items: start;
+}
+
+.profile-container {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.profile-header-buttons {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.sent-text-header {
+  color: #c9807b;
+  cursor: pointer;
+  font-weight: 400;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+}
+
+.sent-text-header:hover {
+  opacity: 0.7;
+}
+
+.back-to-compose-button {
+  padding: 0.7rem 1.25rem;
+  font-size: 0.95rem;
+  border: 2px solid #c9807b;
+  border-radius: 8px;
+  background: transparent;
+  color: #c9807b;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+}
+
+.back-to-compose-button:hover {
+  background-color: #c9807b;
+  color: #fff;
+}
+
+.profile-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-family: 'Pinyon Script', cursive;
+  color: #879386;
+  margin: 0;
+}
+
+.logout-button {
+  padding: 0.7rem 1.25rem;
+  font-size: 0.95rem;
+  border: 2px solid #c9807b;
+  border-radius: 8px;
+  background: transparent;
+  color: #c9807b;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+}
+
+.logout-button:hover {
+  background-color: #c9807b;
+  color: #fff;
+}
+
+/* Compose section */
+.compose-section {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.compose-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #4a2c2a;
+  margin: 0 0 1.5rem 0;
+  font-family: 'Be Vietnam', sans-serif;
+}
+
+.compose-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.compose-form .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.compose-form .form-group label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #2a2a2a;
+  margin-bottom: 8px;
+  font-family: 'Be Vietnam', sans-serif;
+  text-align: left;
+}
+
+.compose-form input,
+.compose-form textarea {
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  border: 2px solid #e0d5d0;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+  text-align: left;
+  transition: border-color 0.2s;
+}
+
+.compose-form input:focus,
+.compose-form textarea:focus {
+  outline: none;
+  border-color: #c9807b;
+}
+
+.compose-form textarea {
+  resize: vertical;
+  min-height: 200px;
+  font-family: Arial, sans-serif;
+}
+
+.send-button {
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background-color: #c9807b;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 0.5rem;
+}
+
+.send-button:hover {
+  background-color: #b86d64;
+}
+
+/* Small sent button - removed, now integrated in header */
+
+/* Sent view styles */
+.sent-view {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sent-empty {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #888;
+  font-size: 1rem;
+}
+
+.sent-view-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sent-view-item {
+  background: rgba(201, 128, 123, 0.08);
+  border-radius: 10px;
+  padding: 1.5rem;
+  border-left: 4px solid #c9807b;
+}
+
+.sent-view-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 1rem;
+}
+
+.sent-view-item-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4a2c2a;
+  margin: 0;
+  font-family: 'Be Vietnam', sans-serif;
+}
+
+.delete-sent-button {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #e8d5d2;
+  color: #c45044;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.delete-sent-button:hover {
+  background-color: #dcc4c1;
+}
+
+.sent-view-item p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #333;
+  margin: 0.75rem 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.sent-view-timestamp {
+  font-size: 0.85rem;
+  color: #888;
+  display: block;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .messages-sidebar {
+    position: static;
+    max-height: none;
+  }
+
+  .profile-title {
+    font-size: 2rem;
+  }
+}

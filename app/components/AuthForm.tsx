@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface AuthFormProps {
@@ -16,6 +17,7 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,14 +37,43 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
         return;
       }
 
-      // Mock successful submission
+      if (isLogin) {
+        // Login: check credentials from localStorage
+        const storedUsers = JSON.parse(localStorage.getItem('users') || '{}');
+        const user = storedUsers[email];
+
+        if (!user || user.password !== password) {
+          setError('Invalid email or password');
+          setLoading(false);
+          return;
+        }
+
+        // Store current user session
+        localStorage.setItem('currentUser', JSON.stringify({ email, password }));
+      } else {
+        // Sign up: store new credentials
+        const storedUsers = JSON.parse(localStorage.getItem('users') || '{}');
+
+        if (storedUsers[email]) {
+          setError('Email already registered');
+          setLoading(false);
+          return;
+        }
+
+        storedUsers[email] = { password, email };
+        localStorage.setItem('users', JSON.stringify(storedUsers));
+        localStorage.setItem('currentUser', JSON.stringify({ email, password }));
+      }
+
       setSuccess(true);
       setEmail('');
       setPassword('');
       setConfirmPassword('');
 
-      // Reset success message after 3 seconds
-      setTimeout(() => setSuccess(false), 3000);
+      // Redirect to profile after 1 second
+      setTimeout(() => {
+        router.push('/profile');
+      }, 1000);
     } catch (err) {
       setError('An error occurred. Please try again.');
     } finally {
