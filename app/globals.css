@@ -60,20 +60,20 @@ html, body {
 
 .hero {
   max-width: 56ch;
-  padding: 48px 0;
-  margin: 0 auto;
+  padding: 20px 0;
+  margin: 0 0 0 5%; /* slightly left of center (desktop-first) */
 }
 
 .hero-subtitle {
-  font-family: 'Be Vietnam', sans-serif;
+  font-family: 'Be Vietnam',;
   color: #f2a494;
   font-size: 1.5rem;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.5rem;
 }
 
 .hero-title {
-  font-size: 3.25rem;
-  margin-bottom: 0.5rem;
+  font-size: 4rem;
+  margin-bottom: 3rem;
   font-weight: 700;
   font-family: 'Pinyon Script', cursive;
   color: #879386;
@@ -81,9 +81,9 @@ html, body {
 }
 
 .hero-p {
-  font-size: 1.0625rem;
-  margin-bottom: 0.6rem;
-  font-family: 'Be Vietnam', sans-serif;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  font-family: 'Be Vietnam',;
   color: #c45044;
   line-height: 1.6;
 }
@@ -92,11 +92,11 @@ html, body {
   display: flex;
   gap: 0.75rem;
   justify-content: flex-start;
-  margin-top: 0.35rem;
+  margin-top: 0.5rem;
 }
 
 .cta-button {
-  padding: 0.7rem 1.25rem;
+  padding: 0.7rem 1rem;
   font-size: 0.95rem;
   border-radius: 8px;
   border: none;
