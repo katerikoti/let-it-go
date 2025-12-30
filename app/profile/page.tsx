@@ -17,16 +17,29 @@ export default function ProfilePage() {
   const [content, setContent] = useState('');
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'compose' | 'sent'>('compose');
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is logged in
-    const currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) {
+    // Check if user is logged in and load their messages
+    const user = localStorage.getItem('currentUser');
+    if (!user) {
       router.push('/');
     } else {
+      setCurrentUser(user);
       setIsAuthenticated(true);
+      
+      // Load messages for this user from localStorage
+      const messagesKey = `messages_${user}`;
+      const savedMessages = localStorage.getItem(messagesKey);
+      if (savedMessages) {
+        try {
+          setMessages(JSON.parse(savedMessages));
+        } catch (e) {
+          setMessages([]);
+        }
+      }
     }
   }, [router]);
 
@@ -46,13 +59,28 @@ export default function ProfilePage() {
       timestamp: new Date().toLocaleString(),
     };
 
-    setMessages([newMessage, ...messages]);
+    const updatedMessages = [newMessage, ...messages];
+    setMessages(updatedMessages);
+    
+    // Save messages to localStorage for this user
+    if (currentUser) {
+      const messagesKey = `messages_${currentUser}`;
+      localStorage.setItem(messagesKey, JSON.stringify(updatedMessages));
+    }
+    
     setRecipient('');
     setContent('');
   };
 
   const deleteMessage = (id: string) => {
-    setMessages(messages.filter((msg) => msg.id !== id));
+    const updatedMessages = messages.filter((msg) => msg.id !== id);
+    setMessages(updatedMessages);
+    
+    // Update localStorage for this user
+    if (currentUser) {
+      const messagesKey = `messages_${currentUser}`;
+      localStorage.setItem(messagesKey, JSON.stringify(updatedMessages));
+    }
   };
 
   const handleLogout = () => {
