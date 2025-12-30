@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
+import bcrypt from 'bcryptjs';
 
 interface AuthFormProps {
   isLogin?: boolean;
@@ -12,7 +13,7 @@ interface AuthFormProps {
 }
 
 export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFormProps) {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -32,7 +33,7 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
         return;
       }
 
-      if (email.length === 0 || password.length === 0) {
+      if (username.length === 0 || password.length === 0) {
         setError('Please fill in all fields');
         setLoading(false);
         return;
@@ -40,44 +41,49 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
 
       if (isLogin) {
         // Login: authenticate with Supabase
-        const { data: users, error: queryError } = await supabase
+        const { data: user, error: queryError } = await supabase
           .from('users')
-          .select('id, password')
-          .eq('email', email)
+          .select('id, password_hash')
+          .eq('username', username)
           .single();
 
-        if (queryError || !users) {
-          setError('Invalid email or password');
+        if (queryError || !user) {
+          setError('Invalid username or password');
           setLoading(false);
           return;
         }
 
-        if (users.password !== password) {
-          setError('Invalid email or password');
+        // Compare password with hash
+        const passwordMatch = await bcrypt.compare(password, user.password_hash);
+        if (!passwordMatch) {
+          setError('Invalid username or password');
           setLoading(false);
           return;
         }
 
         // Store user ID in sessionStorage for the session
-        sessionStorage.setItem('userId', users.id);
-        sessionStorage.setItem('userEmail', email);
+        sessionStorage.setItem('userId', user.id);
+        sessionStorage.setItem('username', username);
       } else {
         // Sign up: create new user in Supabase
         const { data: existingUser, error: checkError } = await supabase
           .from('users')
           .select('id')
-          .eq('email', email)
+          .eq('username', username)
           .single();
 
         if (existingUser) {
-          setError('Email already registered');
+          setError('Username already taken');
           setLoading(false);
           return;
         }
 
+        // Hash password before storing
+        const passwordHash = await bcrypt.hash(password, 10);
+
         const { data: newUser, error: insertError } = await supabase
           .from('users')
-          .insert([{ email, password }])
+          .insert([{ username, password_hash: passwordHash }])
           .select('id')
           .single();
 
@@ -89,11 +95,11 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
 
         // Store user ID in sessionStorage
         sessionStorage.setItem('userId', newUser.id);
-        sessionStorage.setItem('userEmail', email);
+        sessionStorage.setItem('username', username);
       }
 
       setSuccess(true);
-      setEmail('');
+      setUsername('');
       setPassword('');
       setConfirmPassword('');
 
@@ -124,13 +130,13 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="username">Username</label>
             <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your username"
               required
             />
           </div>

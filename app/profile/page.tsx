@@ -125,7 +125,7 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     sessionStorage.removeItem('userId');
-    sessionStorage.removeItem('userEmail');
+    sessionStorage.removeItem('username');
     router.push('/');
   };
 
