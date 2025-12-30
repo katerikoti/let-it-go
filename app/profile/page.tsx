@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'compose' | 'sent'>('compose');
+  const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -159,25 +160,55 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="sent-view">
-              {messages.length === 0 ? (
+              {expandedMessageId ? (
+                // Expanded message detail view
+                (() => {
+                  const msg = messages.find((m) => m.id === expandedMessageId);
+                  return msg ? (
+                    <div className="sent-message-detail">
+                      <span
+                        className="back-to-list-text"
+                        onClick={() => setExpandedMessageId(null)}
+                      >
+                        ← Back to Sent
+                      </span>
+                      <div className="message-detail-content">
+                        <div className="detail-header">
+                          <h2>{msg.recipient}</h2>
+                          <span className="detail-timestamp">{msg.timestamp}</span>
+                        </div>
+                        <p className="detail-message">{msg.content}</p>
+                        <button
+                          className="delete-sent-button"
+                          onClick={() => {
+                            deleteMessage(msg.id);
+                            setExpandedMessageId(null);
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ) : null;
+                })()
+              ) : messages.length === 0 ? (
                 <div className="sent-empty">
                   <p>No messages sent yet.</p>
                 </div>
               ) : (
                 <div className="sent-view-list">
                   {messages.map((msg) => (
-                    <div key={msg.id} className="sent-view-item">
-                      <div className="sent-view-item-header">
+                    <div
+                      key={msg.id}
+                      className="sent-view-item-title"
+                      onClick={() => setExpandedMessageId(msg.id)}
+                    >
+                      <div className="sent-list-item-content">
                         <h3>{msg.recipient}</h3>
-                        <button
-                          className="delete-sent-button"
-                          onClick={() => deleteMessage(msg.id)}
-                        >
-                          Delete
-                        </button>
+                        <span className="sent-list-item-timestamp">
+                          {msg.timestamp}
+                        </span>
                       </div>
-                      <p>{msg.content}</p>
-                      <span className="sent-view-timestamp">{msg.timestamp}</span>
                     </div>
                   ))}
                 </div>
