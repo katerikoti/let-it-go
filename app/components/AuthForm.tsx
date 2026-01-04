@@ -187,8 +187,8 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
 
           {error && <div className="auth-error">{error}</div>}
           {resetSuccess && (
-            <div className="auth-success">
-              Unfortunately this is only a test version, and passwords can’t be reset.
+            <div className="auth-error">
+              This is a test version. Passwords can't be reset.
             </div>
           )}
 
