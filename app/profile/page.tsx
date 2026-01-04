@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
-import { encryptMessage, decryptMessage } from '../lib/encryption';
+import { encryptMessage, decryptMessage, isMessageEncrypted } from '../lib/encryption';
 
 interface Message {
   id: string;
@@ -50,10 +50,29 @@ export default function ProfilePage() {
 
       if (fetchError) throw fetchError;
 
-      // Decrypt messages
+      // Decrypt messages and migrate any unencrypted ones
       const formattedMessages: Message[] = await Promise.all(
         (data || []).map(async (msg: any) => {
-          const decryptedContent = await decryptMessage(msg.content, key);
+          let decryptedContent: string;
+          const encrypted = await isMessageEncrypted(msg.content, key);
+          
+          if (encrypted) {
+            // Already encrypted, just decrypt for display
+            decryptedContent = await decryptMessage(msg.content, key);
+          } else {
+            // Plain text message - encrypt it and update in database
+            decryptedContent = msg.content; // Use as-is for display
+            const encryptedContent = await encryptMessage(msg.content, key);
+            
+            // Update the message in the database with encrypted version
+            await supabase
+              .from('messages')
+              .update({ content: encryptedContent })
+              .eq('id', msg.id);
+            
+            console.log(`Migrated message ${msg.id} to encrypted format`);
+          }
+          
           return {
             id: msg.id,
             recipient: msg.recipient,
