@@ -21,9 +21,6 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetSuccess, setResetSuccess] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -163,112 +160,12 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
     }
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    setResetSuccess(false);
-
-    try {
-      // Check if email exists
-      const { data: user, error: queryError } = await supabase
-        .from('users')
-        .select('id, email, username')
-        .eq('email', resetEmail)
-        .single();
-
-      if (queryError || !user) {
-        setError('No account found with this email');
-        setLoading(false);
-        return;
-      }
-
-      // Generate a reset token (in production, use a proper token generator)
-      const resetToken = crypto.randomUUID();
-      const expiresAt = new Date(Date.now() + 3600000).toISOString(); // 1 hour from now
-
-      // Store reset token in database
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ 
-          reset_token: resetToken,
-          reset_token_expires: expiresAt
-        })
-        .eq('id', user.id);
-
-      if (updateError) {
-        setError('Failed to generate reset link');
-        setLoading(false);
-        return;
-      }
-
-      // In production, you'd send an email here with the reset link
-      // For now, we'll just show the link
-      const resetLink = `${window.location.origin}/reset-password?token=${resetToken}`;
-      
-      setResetSuccess(true);
-      setError('');
-      
-      // Copy to clipboard
-      navigator.clipboard.writeText(resetLink);
-      
-      alert(`Password reset link copied to clipboard!\n\nIn production, this would be sent to your email.\n\nReset link: ${resetLink}`);
-      
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (showForgotPassword) {
-    return (
-      <div className="auth-form-wrapper">
-        <div className="auth-form-container">
-          <h2 className="auth-title">Reset Password</h2>
-
-          {error && <div className="auth-error">{error}</div>}
-          {resetSuccess && (
-            <div className="auth-success">
-              Reset link generated! Check the alert for your link.
-            </div>
-          )}
-
-          <form onSubmit={handleForgotPassword} className="auth-form">
-            <div className="form-group">
-              <label htmlFor="resetEmail">Email</label>
-              <input
-                id="resetEmail"
-                type="email"
-                value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="auth-submit-button"
-            >
-              {loading ? 'Loading...' : 'Send Reset Link'}
-            </button>
-          </form>
-
-          <div className="auth-toggle">
-            <button
-              type="button"
-              onClick={() => setShowForgotPassword(false)}
-              className="auth-toggle-button"
-            >
-              ← Back to login
-            </button>
-          </div>
-        </div>
-      </div>
+  const handleForgotPasswordClick = () => {
+    setSuccess(false);
+    setError(
+      "Unfortunately password reset isn't available in this test version yet."
     );
-  }
+  };
 
   return (
     <div className="auth-form-wrapper">
@@ -350,7 +247,7 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
           <div className="auth-toggle" style={{ marginTop: '10px' }}>
             <button
               type="button"
-              onClick={() => setShowForgotPassword(true)}
+              onClick={handleForgotPasswordClick}
               className="auth-toggle-button"
             >
               Forgot password?
