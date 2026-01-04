@@ -21,6 +21,9 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSuccess, setResetSuccess] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -160,12 +163,75 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
     }
   };
 
-  const handleForgotPasswordClick = () => {
-    setSuccess(false);
-    setError(
-      "Unfortunately password reset isn't available in this test version yet."
-    );
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    setResetSuccess(false);
+
+    try {
+      // Test-mode stub (no real email/reset yet)
+      setResetSuccess(true);
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (showForgotPassword) {
+    return (
+      <div className="auth-form-wrapper">
+        <div className="auth-form-container">
+          <h2 className="auth-title">Reset Password</h2>
+
+          {error && <div className="auth-error">{error}</div>}
+          {resetSuccess && (
+            <div className="auth-success">
+              Unfortunately this is only a test version, and passwords can’t be reset.
+            </div>
+          )}
+
+          <form onSubmit={handleForgotPassword} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="resetEmail">Email</label>
+              <input
+                id="resetEmail"
+                type="email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="auth-submit-button"
+            >
+              {loading ? 'Loading...' : 'Send Reset Link'}
+            </button>
+          </form>
+
+          <div className="auth-toggle">
+            <button
+              type="button"
+              onClick={() => {
+                setShowForgotPassword(false);
+                setResetEmail('');
+                setResetSuccess(false);
+                setError('');
+              }}
+              className="auth-toggle-button"
+            >
+              ← Back to login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-form-wrapper">
@@ -247,7 +313,12 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
           <div className="auth-toggle" style={{ marginTop: '10px' }}>
             <button
               type="button"
-              onClick={handleForgotPasswordClick}
+              onClick={() => {
+                setShowForgotPassword(true);
+                setResetEmail('');
+                setResetSuccess(false);
+                setError('');
+              }}
               className="auth-toggle-button"
             >
               Forgot password?
