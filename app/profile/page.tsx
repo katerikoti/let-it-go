@@ -58,6 +58,8 @@ export default function ProfilePage() {
           const contentEncrypted = await isMessageEncrypted(msg.content, key);
           const recipientEncrypted = await isMessageEncrypted(msg.recipient, key);
           
+          console.log(`Message ${msg.id}: content encrypted=${contentEncrypted}, recipient encrypted=${recipientEncrypted}`);
+          
           if (contentEncrypted && recipientEncrypted) {
             // Already encrypted, just decrypt for display
             decryptedRecipient = await decryptMessage(msg.recipient, key);
@@ -81,6 +83,8 @@ export default function ProfilePage() {
             
             console.log(`Migrated message ${msg.id} to encrypted format`);
           }
+          
+          console.log(`Displaying - recipient: ${decryptedRecipient}, content preview: ${decryptedContent.substring(0, 50)}...`);
           
           return {
             id: msg.id,
