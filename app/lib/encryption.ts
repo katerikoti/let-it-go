@@ -7,7 +7,7 @@
  * Derives an encryption key from a password using PBKDF2.
  * The key is stored in sessionStorage and used to encrypt/decrypt messages.
  */
-export async function deriveKeyFromPassword(password: string, username: string): Promise<string> {
+export async function deriveKeyFromPassword(password: string, username: string, iterations: number = 100000): Promise<string> {
   const encoder = new TextEncoder();
   
   // Use username as salt (in production, consider storing a random salt per user)
@@ -28,7 +28,7 @@ export async function deriveKeyFromPassword(password: string, username: string):
     {
       name: 'PBKDF2',
       salt: salt,
-      iterations: 100000,
+      iterations: iterations,
       hash: 'SHA-256',
     },
     keyMaterial,
@@ -85,8 +85,9 @@ export async function encryptMessage(message: string, keyHex: string): Promise<s
 
 /**
  * Decrypts a message using the user's encryption key.
+ * Tries multiple iteration counts for backwards compatibility.
  */
-export async function decryptMessage(encryptedMessage: string, keyHex: string): Promise<string> {
+export async function decryptMessage(encryptedMessage: string, keyHex: string, username?: string, password?: string): Promise<string> {
   try {
     // Convert hex key back to CryptoKey
     const keyArray = new Uint8Array(keyHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
@@ -118,6 +119,40 @@ export async function decryptMessage(encryptedMessage: string, keyHex: string): 
     const decoder = new TextDecoder();
     return decoder.decode(decryptedBuffer);
   } catch (error) {
+    // If decryption fails and we have username/password, try with old iteration count (10000)
+    if (username && password) {
+      try {
+        console.log('Trying decryption with old iteration count (10000)...');
+        const oldKey = await deriveKeyFromPassword(password, username, 10000);
+        const keyArray = new Uint8Array(oldKey.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+        const key = await crypto.subtle.importKey(
+          'raw',
+          keyArray,
+          'AES-GCM',
+          false,
+          ['decrypt']
+        );
+
+        const combined = Uint8Array.from(atob(encryptedMessage), c => c.charCodeAt(0));
+        const iv = combined.slice(0, 12);
+        const encryptedData = combined.slice(12);
+
+        const decryptedBuffer = await crypto.subtle.decrypt(
+          {
+            name: 'AES-GCM',
+            iv: iv,
+          },
+          key,
+          encryptedData
+        );
+
+        const decoder = new TextDecoder();
+        return decoder.decode(decryptedBuffer);
+      } catch (oldError) {
+        console.error('Decryption failed with both iteration counts:', oldError);
+        return '[Unable to decrypt message]';
+      }
+    }
     console.error('Decryption failed:', error);
     return '[Unable to decrypt message]';
   }

@@ -65,6 +65,7 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
         // Store user ID in sessionStorage for the session
         sessionStorage.setItem('userId', user.id);
         sessionStorage.setItem('username', username);
+        sessionStorage.setItem('password', password); // Store for decryption fallback
 
         // Derive and store encryption key
         const encryptionKey = await deriveKeyFromPassword(password, username);
@@ -101,6 +102,7 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
         // Store user ID in sessionStorage
         sessionStorage.setItem('userId', newUser.id);
         sessionStorage.setItem('username', username);
+        sessionStorage.setItem('password', password); // Store for decryption fallback
 
         // Derive and store encryption key
         const encryptionKey = await deriveKeyFromPassword(password, username);

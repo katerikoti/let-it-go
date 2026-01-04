@@ -21,6 +21,8 @@ export default function ProfilePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [encryptionKey, setEncryptionKey] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [password, setPassword] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'compose' | 'sent'>('compose');
   const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,17 +32,21 @@ export default function ProfilePage() {
     // Check if user is logged in and load their messages
     const storedUserId = sessionStorage.getItem('userId');
     const storedKey = sessionStorage.getItem('encryptionKey');
+    const storedUsername = sessionStorage.getItem('username');
+    const storedPassword = sessionStorage.getItem('password');
     if (!storedUserId || !storedKey) {
       router.push('/');
     } else {
       setUserId(storedUserId);
       setEncryptionKey(storedKey);
+      setUsername(storedUsername);
+      setPassword(storedPassword);
       setIsAuthenticated(true);
-      loadMessages(storedUserId, storedKey);
+      loadMessages(storedUserId, storedKey, storedUsername, storedPassword);
     }
   }, [router]);
 
-  const loadMessages = async (uid: string, key: string) => {
+  const loadMessages = async (uid: string, key: string, uname: string | null, pwd: string | null) => {
     try {
       const { data, error: fetchError } = await supabase
         .from('messages')
@@ -61,13 +67,13 @@ export default function ProfilePage() {
           console.log(`Message ${msg.id}: content encrypted=${contentEncrypted}, recipient encrypted=${recipientEncrypted}`);
           
           if (contentEncrypted && recipientEncrypted) {
-            // Already encrypted, just decrypt for display
-            decryptedRecipient = await decryptMessage(msg.recipient, key);
-            decryptedContent = await decryptMessage(msg.content, key);
+            // Already encrypted, just decrypt for display (with fallback for old iteration count)
+            decryptedRecipient = await decryptMessage(msg.recipient, key, uname || undefined, pwd || undefined);
+            decryptedContent = await decryptMessage(msg.content, key, uname || undefined, pwd || undefined);
           } else {
             // Plain text fields - encrypt them and update in database
-            decryptedRecipient = recipientEncrypted ? await decryptMessage(msg.recipient, key) : msg.recipient;
-            decryptedContent = contentEncrypted ? await decryptMessage(msg.content, key) : msg.content;
+            decryptedRecipient = recipientEncrypted ? await decryptMessage(msg.recipient, key, uname || undefined, pwd || undefined) : msg.recipient;
+            decryptedContent = contentEncrypted ? await decryptMessage(msg.content, key, uname || undefined, pwd || undefined) : msg.content;
             
             const encryptedRecipient = recipientEncrypted ? msg.recipient : await encryptMessage(msg.recipient, key);
             const encryptedContent = contentEncrypted ? msg.content : await encryptMessage(msg.content, key);
@@ -176,6 +182,7 @@ export default function ProfilePage() {
   const handleLogout = () => {
     sessionStorage.removeItem('userId');
     sessionStorage.removeItem('username');
+    sessionStorage.removeItem('password');
     sessionStorage.removeItem('encryptionKey');
     router.push('/');
   };
