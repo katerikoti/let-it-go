@@ -61,8 +61,8 @@ export default function ProfilePage() {
         (data || []).map(async (msg: any) => {
           let decryptedRecipient: string;
           let decryptedContent: string;
-          const contentEncrypted = await isMessageEncrypted(msg.content, key);
-          const recipientEncrypted = await isMessageEncrypted(msg.recipient, key);
+          const contentEncrypted = await isMessageEncrypted(msg.content, key, uname || undefined, pwd || undefined);
+          const recipientEncrypted = await isMessageEncrypted(msg.recipient, key, uname || undefined, pwd || undefined);
           
           console.log(`Message ${msg.id}: content encrypted=${contentEncrypted}, recipient encrypted=${recipientEncrypted}`);
           

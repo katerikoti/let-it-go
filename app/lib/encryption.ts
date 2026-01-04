@@ -162,10 +162,10 @@ export async function decryptMessage(encryptedMessage: string, keyHex: string, u
  * Checks if a message is already encrypted by attempting to decrypt it.
  * Returns true if the message appears to be encrypted, false otherwise.
  */
-export async function isMessageEncrypted(message: string, keyHex: string): Promise<boolean> {
+export async function isMessageEncrypted(message: string, keyHex: string, username?: string, password?: string): Promise<boolean> {
   try {
-    // Try to decrypt - if successful and doesn't return error message, it's encrypted
-    const decrypted = await decryptMessage(message, keyHex);
+    // Try to decrypt with current key
+    const decrypted = await decryptMessage(message, keyHex, username, password);
     return decrypted !== '[Unable to decrypt message]';
   } catch {
     return false;
