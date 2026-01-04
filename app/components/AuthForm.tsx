@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 import bcrypt from 'bcryptjs';
+import { deriveKeyFromPassword } from '../lib/encryption';
 
 interface AuthFormProps {
   isLogin?: boolean;
@@ -64,6 +65,10 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
         // Store user ID in sessionStorage for the session
         sessionStorage.setItem('userId', user.id);
         sessionStorage.setItem('username', username);
+
+        // Derive and store encryption key
+        const encryptionKey = await deriveKeyFromPassword(password, username);
+        sessionStorage.setItem('encryptionKey', encryptionKey);
       } else {
         // Sign up: create new user in Supabase
         const { data: existingUser, error: checkError } = await supabase
@@ -96,6 +101,10 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
         // Store user ID in sessionStorage
         sessionStorage.setItem('userId', newUser.id);
         sessionStorage.setItem('username', username);
+
+        // Derive and store encryption key
+        const encryptionKey = await deriveKeyFromPassword(password, username);
+        sessionStorage.setItem('encryptionKey', encryptionKey);
       }
 
       setSuccess(true);

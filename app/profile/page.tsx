@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
+import { encryptMessage, decryptMessage } from '../lib/encryption';
 
 interface Message {
   id: string;
@@ -19,6 +20,7 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [encryptionKey, setEncryptionKey] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'compose' | 'sent'>('compose');
   const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,16 +29,18 @@ export default function ProfilePage() {
   useEffect(() => {
     // Check if user is logged in and load their messages
     const storedUserId = sessionStorage.getItem('userId');
-    if (!storedUserId) {
+    const storedKey = sessionStorage.getItem('encryptionKey');
+    if (!storedUserId || !storedKey) {
       router.push('/');
     } else {
       setUserId(storedUserId);
+      setEncryptionKey(storedKey);
       setIsAuthenticated(true);
-      loadMessages(storedUserId);
+      loadMessages(storedUserId, storedKey);
     }
   }, [router]);
 
-  const loadMessages = async (uid: string) => {
+  const loadMessages = async (uid: string, key: string) => {
     try {
       const { data, error: fetchError } = await supabase
         .from('messages')
@@ -46,12 +50,18 @@ export default function ProfilePage() {
 
       if (fetchError) throw fetchError;
 
-      const formattedMessages: Message[] = (data || []).map((msg: any) => ({
-        id: msg.id,
-        recipient: msg.recipient,
-        content: msg.content,
-        timestamp: new Date(msg.created_at).toLocaleString(),
-      }));
+      // Decrypt messages
+      const formattedMessages: Message[] = await Promise.all(
+        (data || []).map(async (msg: any) => {
+          const decryptedContent = await decryptMessage(msg.content, key);
+          return {
+            id: msg.id,
+            recipient: msg.recipient,
+            content: decryptedContent,
+            timestamp: new Date(msg.created_at).toLocaleString(),
+          };
+        })
+      );
 
       setMessages(formattedMessages);
     } catch (err) {
@@ -71,19 +81,22 @@ export default function ProfilePage() {
       return;
     }
 
-    if (!userId) {
+    if (!userId || !encryptionKey) {
       setError('User not authenticated');
       return;
     }
 
     try {
+      // Encrypt the message before sending
+      const encryptedContent = await encryptMessage(content.trim(), encryptionKey);
+
       const { data: newMsg, error: insertError } = await supabase
         .from('messages')
         .insert([
           {
             user_id: userId,
             recipient: recipient.trim(),
-            content: content.trim(),
+            content: encryptedContent,
           },
         ])
         .select('id, recipient, content, created_at')
@@ -91,10 +104,13 @@ export default function ProfilePage() {
 
       if (insertError) throw insertError;
 
+      // Decrypt for display
+      const decryptedContent = await decryptMessage(newMsg.content, encryptionKey);
+
       const formattedMessage: Message = {
         id: newMsg.id,
         recipient: newMsg.recipient,
-        content: newMsg.content,
+        content: decryptedContent,
         timestamp: new Date(newMsg.created_at).toLocaleString(),
       };
 
@@ -126,6 +142,7 @@ export default function ProfilePage() {
   const handleLogout = () => {
     sessionStorage.removeItem('userId');
     sessionStorage.removeItem('username');
+    sessionStorage.removeItem('encryptionKey');
     router.push('/');
   };
 
