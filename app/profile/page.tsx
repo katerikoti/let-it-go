@@ -53,21 +53,30 @@ export default function ProfilePage() {
       // Decrypt messages and migrate any unencrypted ones
       const formattedMessages: Message[] = await Promise.all(
         (data || []).map(async (msg: any) => {
+          let decryptedRecipient: string;
           let decryptedContent: string;
-          const encrypted = await isMessageEncrypted(msg.content, key);
+          const contentEncrypted = await isMessageEncrypted(msg.content, key);
+          const recipientEncrypted = await isMessageEncrypted(msg.recipient, key);
           
-          if (encrypted) {
+          if (contentEncrypted && recipientEncrypted) {
             // Already encrypted, just decrypt for display
+            decryptedRecipient = await decryptMessage(msg.recipient, key);
             decryptedContent = await decryptMessage(msg.content, key);
           } else {
-            // Plain text message - encrypt it and update in database
-            decryptedContent = msg.content; // Use as-is for display
-            const encryptedContent = await encryptMessage(msg.content, key);
+            // Plain text fields - encrypt them and update in database
+            decryptedRecipient = recipientEncrypted ? await decryptMessage(msg.recipient, key) : msg.recipient;
+            decryptedContent = contentEncrypted ? await decryptMessage(msg.content, key) : msg.content;
+            
+            const encryptedRecipient = recipientEncrypted ? msg.recipient : await encryptMessage(msg.recipient, key);
+            const encryptedContent = contentEncrypted ? msg.content : await encryptMessage(msg.content, key);
             
             // Update the message in the database with encrypted version
             await supabase
               .from('messages')
-              .update({ content: encryptedContent })
+              .update({ 
+                recipient: encryptedRecipient,
+                content: encryptedContent 
+              })
               .eq('id', msg.id);
             
             console.log(`Migrated message ${msg.id} to encrypted format`);
@@ -75,7 +84,7 @@ export default function ProfilePage() {
           
           return {
             id: msg.id,
-            recipient: msg.recipient,
+            recipient: decryptedRecipient,
             content: decryptedContent,
             timestamp: new Date(msg.created_at).toLocaleString(),
           };
@@ -106,7 +115,8 @@ export default function ProfilePage() {
     }
 
     try {
-      // Encrypt the message before sending
+      // Encrypt both the recipient and message before sending
+      const encryptedRecipient = await encryptMessage(recipient.trim(), encryptionKey);
       const encryptedContent = await encryptMessage(content.trim(), encryptionKey);
 
       const { data: newMsg, error: insertError } = await supabase
@@ -114,7 +124,7 @@ export default function ProfilePage() {
         .insert([
           {
             user_id: userId,
-            recipient: recipient.trim(),
+            recipient: encryptedRecipient,
             content: encryptedContent,
           },
         ])
@@ -124,11 +134,12 @@ export default function ProfilePage() {
       if (insertError) throw insertError;
 
       // Decrypt for display
+      const decryptedRecipient = await decryptMessage(newMsg.recipient, encryptionKey);
       const decryptedContent = await decryptMessage(newMsg.content, encryptionKey);
 
       const formattedMessage: Message = {
         id: newMsg.id,
-        recipient: newMsg.recipient,
+        recipient: decryptedRecipient,
         content: decryptedContent,
         timestamp: new Date(newMsg.created_at).toLocaleString(),
       };
