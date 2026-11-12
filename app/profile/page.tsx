@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 import { encryptMessage, decryptMessage, isMessageEncrypted } from '../lib/encryption';
 
@@ -30,7 +29,9 @@ export default function ProfilePage() {
 
   useEffect(() => {
     // Check if user is logged in and load their messages
-    const storedUserId = sessionStorage.getItem('userId');
+    const init = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const storedUserId = session ? sessionStorage.getItem('userId') : null;
     const storedKey = sessionStorage.getItem('encryptionKey');
     const storedUsername = sessionStorage.getItem('username');
     const storedPassword = sessionStorage.getItem('password');
@@ -44,6 +45,8 @@ export default function ProfilePage() {
       setIsAuthenticated(true);
       loadMessages(storedUserId, storedKey, storedUsername, storedPassword);
     }
+    };
+    init();
   }, [router]);
 
   const loadMessages = async (uid: string, key: string, uname: string | null, pwd: string | null) => {
@@ -58,7 +61,7 @@ export default function ProfilePage() {
 
       // Decrypt messages and migrate any unencrypted ones
       const formattedMessages: Message[] = await Promise.all(
-        (data || []).map(async (msg: any) => {
+        (data || []).map(async (msg) => {
           let decryptedRecipient: string;
           let decryptedContent: string;
           const contentEncrypted = await isMessageEncrypted(msg.content, key, uname || undefined, pwd || undefined);
@@ -179,7 +182,8 @@ export default function ProfilePage() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     sessionStorage.removeItem('userId');
     sessionStorage.removeItem('username');
     sessionStorage.removeItem('password');

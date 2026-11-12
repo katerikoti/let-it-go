@@ -40,9 +40,14 @@ html, body {
 /* Site wrapper centers content and provides horizontal padding */
 .site-wrapper {
   max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 24px;
+  margin: 24px auto;
+  padding: 0 40px;
   box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  min-height: calc(100vh - 48px);
 }
 
 /* Hero / landing page helpers (desktop-first) */
@@ -53,7 +58,7 @@ html, body {
   color: #4a2c2a;
   font-family: Arial, Helvetica, sans-serif;
   text-align: left;
-  height: 100vh;
+  min-height: 100vh;
   box-sizing: border-box;
   padding-top: 8vh; /* move content higher */
 }
@@ -65,7 +70,7 @@ html, body {
 }
 
 .hero-subtitle {
-  font-family: 'Be Vietnam',;
+  font-family: var(--font-body), sans-serif;
   color: #f2a494;
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
@@ -75,7 +80,7 @@ html, body {
   font-size: 4rem;
   margin-bottom: 3rem;
   font-weight: 700;
-  font-family: 'Pinyon Script', cursive;
+  font-family: var(--font-script), cursive;
   color: #879386;
   line-height: 1;
 }
@@ -83,7 +88,7 @@ html, body {
 .hero-p {
   font-size: 1.1rem;
   margin-bottom: 1.5rem;
-  font-family: 'Be Vietnam',;
+  font-family: var(--font-body), sans-serif;
   color: #c45044;
   line-height: 1.6;
 }
@@ -120,7 +125,8 @@ html, body {
 .auth-form-container {
   max-width: 320px;
   width: 100%;
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #efe3df;
   border-radius: 12px;
   padding: 30px 24px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -132,7 +138,7 @@ html, body {
   color: #4a2c2a;
   margin: 0 0 24px 0;
   text-align: center;
-  font-family: 'Pinyon Script', cursive;
+  font-family: var(--font-script), cursive;
 }
 
 .auth-form {
@@ -151,7 +157,7 @@ html, body {
   font-weight: 700;
   color: #2a2a2a;
   margin-bottom: 8px;
-  font-family: 'Be Vietnam', sans-serif;
+  font-family: var(--font-body), sans-serif;
   text-align: left;
   display: block;
 }
@@ -219,7 +225,7 @@ html, body {
   font-size: 0.85rem;
   color: #4a2c2a;
   margin-top: 14px;
-  font-family: 'Be Vietnam', sans-serif;
+  font-family: var(--font-body), sans-serif;
 }
 
 .auth-toggle a {
@@ -239,7 +245,7 @@ html, body {
   text-decoration: none;
   font-weight: 600;
   cursor: pointer;
-  font-family: 'Be Vietnam', sans-serif;
+  font-family: var(--font-body), sans-serif;
   font-size: 0.95rem;
   padding: 0;
 }
@@ -325,7 +331,7 @@ html, body {
 .profile-title {
   font-size: 2.5rem;
   font-weight: 700;
-  font-family: 'Pinyon Script', cursive;
+  font-family: var(--font-script), cursive;
   color: #879386;
   margin: 0;
 }
@@ -359,7 +365,7 @@ html, body {
   font-weight: 700;
   color: #4a2c2a;
   margin: 0 0 1.5rem 0;
-  font-family: 'Be Vietnam', sans-serif;
+  font-family: var(--font-body), sans-serif;
 }
 
 .compose-form {
@@ -378,7 +384,7 @@ html, body {
   font-weight: 700;
   color: #2a2a2a;
   margin-bottom: 8px;
-  font-family: 'Be Vietnam', sans-serif;
+  font-family: var(--font-body), sans-serif;
   text-align: left;
 }
 
@@ -471,7 +477,7 @@ html, body {
   font-weight: 700;
   color: #4a2c2a;
   margin: 0;
-  font-family: 'Be Vietnam', sans-serif;
+  font-family: var(--font-body), sans-serif;
 }
 
 .sent-list-item-timestamp {
@@ -520,7 +526,7 @@ html, body {
   font-weight: 700;
   color: #4a2c2a;
   margin: 0;
-  font-family: 'Be Vietnam', sans-serif;
+  font-family: var(--font-body), sans-serif;
 }
 
 .detail-timestamp {
@@ -576,4 +582,168 @@ html, body {
   .profile-title {
     font-size: 2rem;
   }
+}
+
+/* Landing page */
+.landing {
+  color: #4a2c2a;
+  font-family: var(--font-body), sans-serif;
+  padding-bottom: 2rem;
+}
+
+.landing-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.landing-logo {
+  font-family: var(--font-script), cursive;
+  font-size: 2rem;
+  color: #879386;
+}
+
+.landing-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.landing-link {
+  background: none;
+  border: none;
+  color: #c45044;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.landing-link:hover {
+  text-decoration: underline;
+}
+
+.landing-nav .cta-button,
+.cta-large {
+  padding: 0.5rem 1.1rem;
+}
+
+.cta-large {
+  padding: 0.8rem 1.6rem;
+  font-size: 1.1rem;
+}
+
+.landing-hero {
+  max-width: 56ch;
+  padding: 8vh 0 6vh;
+}
+
+.landing-hero .hero-cta {
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.landing-section {
+  padding: 4vh 0;
+}
+
+.landing-heading {
+  font-family: var(--font-script), cursive;
+  font-size: 2.4rem;
+  font-weight: 400;
+  color: #66755f;
+  margin: 0 0 1.5rem;
+}
+
+.landing-chips {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.landing-chips li {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  padding: 0.6rem 1.2rem;
+  color: #c45044;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.landing-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.landing-card {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #efe3df;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.landing-card h3 {
+  margin: 0.5rem 0;
+  font-size: 1.15rem;
+}
+
+.landing-card p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.landing-step-number {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #c9807b;
+  color: #fff;
+  font-weight: 700;
+}
+
+.landing-auth .auth-form-wrapper {
+  padding-left: 0;
+}
+
+.landing-footer {
+  padding-top: 3vh;
+  font-size: 0.9rem;
+  color: #879386;
+}
+
+@media (max-width: 600px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+}
+
+.auth-note {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #4a2c2a;
+  margin: 0;
+}
+
+/* Landing section dividers */
+.landing-section {
+  border-top: 1px solid rgba(201, 128, 123, 0.35);
+  padding: 4rem 0;
+}
+
+.landing-hero {
+  padding-bottom: 5rem;
+}
+
+.landing-footer p {
+  margin: 0 0 0.5rem;
 }

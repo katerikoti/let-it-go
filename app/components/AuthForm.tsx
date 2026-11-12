@@ -2,28 +2,27 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { supabase } from '../lib/supabase';
-import bcrypt from 'bcryptjs';
 import { deriveKeyFromPassword } from '../lib/encryption';
 
 interface AuthFormProps {
   isLogin?: boolean;
   onToggle?: (isLogin: boolean) => void;
-  onClose?: () => void;
 }
 
-export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFormProps) {
+const EMAIL_DOMAIN = 'letitgo.app';
+const USERNAME_PATTERN = /^[A-Za-z0-9_.-]{2,30}$/;
+
+// Supabase Auth needs an email, so each username maps to an internal address that is never emailed.
+const emailFor = (name: string) => `${name.trim().toLowerCase()}@${EMAIL_DOMAIN}`;
+
+export default function AuthForm({ isLogin = false, onToggle, }: AuthFormProps) {
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetSuccess, setResetSuccess] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,206 +31,110 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
     setLoading(true);
 
     try {
-      if (!isLogin && password !== confirmPassword) {
-        setError('Passwords do not match');
-        setLoading(false);
-        return;
-      }
-
-      if (!isLogin && (username.length === 0 || email.length === 0 || password.length === 0)) {
-        setError('Please fill in all fields');
-        setLoading(false);
-        return;
-      }
-
-      if (isLogin && (username.length === 0 || password.length === 0)) {
-        setError('Please fill in all fields');
-        setLoading(false);
-        return;
-      }
-
-      if (!isLogin && !email.includes('@')) {
-        setError('Please enter a valid email');
-        setLoading(false);
-        return;
-      }
-
       if (isLogin) {
-        // Login: authenticate with Supabase (support both username and email)
-        let user;
-        let queryError;
-        
-        // Try username first
-        const usernameQuery = await supabase
-          .from('users')
-          .select('id, username, password_hash')
-          .eq('username', username)
-          .single();
-        
-        if (usernameQuery.data) {
-          user = usernameQuery.data;
-        } else {
-          // Try email
-          const emailQuery = await supabase
-            .from('users')
-            .select('id, username, password_hash')
-            .eq('email', username)
-            .single();
-          
-          if (emailQuery.data) {
-            user = emailQuery.data;
-          } else {
-            queryError = emailQuery.error;
-          }
-        }
-
-        if (queryError || !user) {
-          setError('Invalid username/email or password');
-          setLoading(false);
+        if (username.length === 0 || password.length === 0) {
+          setError('Please fill in all fields');
           return;
         }
 
-        // Compare password with hash
-        const passwordMatch = await bcrypt.compare(password, user.password_hash);
-        if (!passwordMatch) {
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email: emailFor(username),
+          password,
+        });
+
+        if (signInError || !data.user) {
           setError('Invalid username or password');
-          setLoading(false);
           return;
         }
 
-        // Store user ID in sessionStorage for the session
-        sessionStorage.setItem('userId', user.id);
-        sessionStorage.setItem('username', user.username);
-        sessionStorage.setItem('password', password); // Store for decryption fallback
+        // The username is the salt for the encryption key, so fetch it from the user's own profile
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', data.user.id)
+          .single();
 
-        // Derive and store encryption key
-        const encryptionKey = await deriveKeyFromPassword(password, user.username);
-        sessionStorage.setItem('encryptionKey', encryptionKey);
+        if (profileError || !profile) {
+          await supabase.auth.signOut();
+          setError('Could not load your profile. Please try again.');
+          return;
+        }
+
+        await storeSession(data.user.id, profile.username, password);
       } else {
-        // Sign up: create new user in Supabase
-        const { data: existingUser, error: checkError } = await supabase
-          .from('users')
-          .select('id')
-          .eq('username', username)
-          .single();
+        if (username.length === 0 || password.length === 0) {
+          setError('Please fill in all fields');
+          return;
+        }
 
-        if (existingUser) {
+        if (!USERNAME_PATTERN.test(username)) {
+          setError('Username must be 2-30 characters: letters, numbers, . _ -');
+          return;
+        }
+
+        if (password.length < 6) {
+          setError('Password must be at least 6 characters');
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          setError('Passwords do not match');
+          return;
+        }
+
+        const { data: available } = await supabase.rpc('username_available', {
+          name: username,
+        });
+
+        if (available === false) {
           setError('Username already taken');
-          setLoading(false);
           return;
         }
 
-        // Hash password before storing
-        const passwordHash = await bcrypt.hash(password, 10);
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: emailFor(username),
+          password,
+          options: { data: { username } },
+        });
 
-        const { data: newUser, error: insertError } = await supabase
-          .from('users')
-          .insert([{ username, email, password_hash: passwordHash }])
-          .select('id')
-          .single();
-
-        if (insertError || !newUser) {
-          setError('Failed to create account');
-          setLoading(false);
+        if (signUpError || !data.user) {
+          setError(
+            signUpError?.message === 'User already registered'
+              ? 'Username already taken'
+              : signUpError?.message || 'Failed to create account'
+          );
           return;
         }
 
-        // Store user ID in sessionStorage
-        sessionStorage.setItem('userId', newUser.id);
-        sessionStorage.setItem('username', username);
-        sessionStorage.setItem('password', password); // Store for decryption fallback
+        if (!data.session) {
+          setError('Account created, but email confirmation is still switched on in Supabase.');
+          return;
+        }
 
-        // Derive and store encryption key
-        const encryptionKey = await deriveKeyFromPassword(password, username);
-        sessionStorage.setItem('encryptionKey', encryptionKey);
+        await storeSession(data.user.id, username, password);
       }
 
       setSuccess(true);
       setUsername('');
-      setEmail('');
       setPassword('');
       setConfirmPassword('');
 
-      // Redirect to profile after 1 second
       setTimeout(() => {
         router.push('/profile');
       }, 1000);
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    setResetSuccess(false);
-
-    try {
-      // Test-mode stub (no real email/reset yet)
-      setResetSuccess(true);
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  const storeSession = async (userId: string, name: string, pwd: string) => {
+    sessionStorage.setItem('userId', userId);
+    sessionStorage.setItem('username', name);
+    sessionStorage.setItem('password', pwd); // Store for decryption fallback
+    sessionStorage.setItem('encryptionKey', await deriveKeyFromPassword(pwd, name));
   };
-
-  if (showForgotPassword) {
-    return (
-      <div className="auth-form-wrapper">
-        <div className="auth-form-container">
-          <h2 className="auth-title">Reset Password</h2>
-
-          {error && <div className="auth-error">{error}</div>}
-          {resetSuccess && (
-            <div className="auth-error">
-              This is a test version. Passwords can't be reset.
-            </div>
-          )}
-
-          <form onSubmit={handleForgotPassword} className="auth-form">
-            <div className="form-group">
-              <label htmlFor="resetEmail">Email</label>
-              <input
-                id="resetEmail"
-                type="email"
-                value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="auth-submit-button"
-            >
-              {loading ? 'Loading...' : 'Send Reset Link'}
-            </button>
-          </form>
-
-          <div className="auth-toggle">
-            <button
-              type="button"
-              onClick={() => {
-                setShowForgotPassword(false);
-                setResetEmail('');
-                setResetSuccess(false);
-                setError('');
-              }}
-              className="auth-toggle-button"
-            >
-              ← Back to login
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="auth-form-wrapper">
@@ -249,30 +152,17 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label htmlFor="username">{isLogin ? 'Username or Email' : 'Username'}</label>
+            <label htmlFor="username">Username</label>
             <input
               id="username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder={isLogin ? "Enter username or email" : "Choose a username"}
+              placeholder={isLogin ? 'Enter your username' : 'Choose a username'}
+              autoComplete="username"
               required
             />
           </div>
-
-          {!isLogin && (
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-              />
-            </div>
-          )}
 
           <div className="form-group">
             <label htmlFor="password">Password</label>
@@ -309,27 +199,10 @@ export default function AuthForm({ isLogin = false, onToggle, onClose }: AuthFor
           </button>
         </form>
 
-        {isLogin && (
-          <div className="auth-toggle" style={{ marginTop: '10px' }}>
-            <button
-              type="button"
-              onClick={() => {
-                setShowForgotPassword(true);
-                setResetEmail('');
-                setResetSuccess(false);
-                setError('');
-              }}
-              className="auth-toggle-button"
-            >
-              Forgot password?
-            </button>
-          </div>
-        )}
-
         <div className="auth-toggle">
           {isLogin ? (
             <>
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <button
                 type="button"
                 onClick={() => onToggle?.(false)}
